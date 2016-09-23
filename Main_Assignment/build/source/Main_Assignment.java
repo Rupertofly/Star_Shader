@@ -37,13 +37,15 @@ ArduinoInput input;
 PGraphics starFBO;
 PGraphics distortFBO;
 
-// Declare Variables for zoom, speed, mix volume, and channel volumes
+// Declare Variables for zoom, speed, mix volume, and channel volumes, and audio
 
 float v_zoom;
 float v_speed;
 float v_volume;
 float v_lA;
 float v_rA;
+
+boolean audcon;
 
 //-------------------------------------
 
@@ -75,13 +77,14 @@ public void setup() {
 
 //-------------------------------------
 
-public void updateShaderParams() {
+public void updateShaderParams() { //update shader Parameters
 
-  float[] sensorValues = input.getSensor(); //store sensor
+  float[] sensorValues = input.getSensor(); //store sensor Values
 
-  v_zoom = map(sensorValues[1],0.0f,1024.0f,0.3f,1.1f);
-  v_speed = map(sensorValues[0],0.0f,1024.0f,0.005f,0.015f);
-  v_volume = map(s_input.getMvolume(),0.0f,0.7f,10,30);
+  v_zoom = map(sensorValues[1],0.0f,1024.0f,0.3f,1.1f); //set zoom var to mapped pot input
+  v_speed = map(sensorValues[0],0.0f,1024.0f,0.005f,0.015f); //set speed var to mapped pot input
+  v_volume = map(s_input.getMvolume(),0.0f,0.7f,10,30); //set volume var to mapped volume input
+  //Check which channel is louder and set the difference to the respective variable, and set the other variable to 0.001
   if(s_input.getLvolume() > s_input.getRvolume()) {
     v_lA = s_input.getLvolume() - s_input.getRvolume();
     v_rA = 0.001f;
@@ -90,51 +93,40 @@ public void updateShaderParams() {
     v_lA = 0.001f;
   }
 
+ //pass variables to star field shader
  starshader.set("zoom", v_zoom);
  starshader.set("speed",v_speed);
+ if(keyPressed == true){
  starshader.set("iterations",(int)v_volume);
  starshader.set("l_v",v_lA);
  starshader.set("r_v",v_rA);
- // println((int)v_volume," ",s_input.getMvolume());
-
+ }
 }
-
-
-
 //-------------------------------------
 
 public void draw() {
 
-
-// starshader.set("iResolution", float(width), float(height), 0); // Pass in our xy resolution to iResolution uniform variable in our shader
-// distortshader.set("iResolution", float(width), float(height), 0);
-
-
- updateShaderParams();
+ updateShaderParams(); //update shader details
 
  starFBO.beginDraw();
  starshader.set("iGlobalTime", millis() / 1000.0f); // pass in a millisecond clock to enable animation
- shader(starshader);
+ shader(starshader); //set shader to star field shader
  starFBO.rect(0, 0, width, height); // We draw a rect here for our shader to draw onto
  starFBO.endDraw();
 
+ float[] sensorValues = input.getSensor(); //get sensor values
 
-
- float[] sensorValues = input.getSensor();
- println(sensorValues[2]);
-if (sensorValues[2] == 0.0f){
- image(starFBO, 0, 0, width, height);
- }
-else {
+ if (sensorValues[2] == 0.0f){ //check if button is pressed
+  image(starFBO,0,0,width,height); //draw plain star field shader
+} else {
   distortFBO.beginDraw();
-  distortshader.set("iGlobalTime", millis() / 1000.0f);
-  distortshader.set("ispec", starFBO);
-  shader(distortshader);
-  distortFBO.rect(0, 0, width, height);
+  distortshader.set("iGlobalTime", millis() / 1000.0f); // pass in a millisecond clock to enable animation
+  distortshader.set("ispec", starFBO); //set texture to star
+  shader(distortshader); //set shader to star field shader
+  distortFBO.rect(0, 0, width, height); //draw rectangle for shader to draw to
   distortFBO.endDraw();
- image(distortFBO,0,0,width,height);
- }
-
+  image(distortFBO,0,0,width,height); //draw distorted star field shader
+}
 }
  //import the Serial library
 Serial port;    // The serial port, this is a new instance of the Serial class (an Object)

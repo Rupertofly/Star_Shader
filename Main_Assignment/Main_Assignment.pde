@@ -13,13 +13,15 @@ ArduinoInput input;
 PGraphics starFBO;
 PGraphics distortFBO;
 
-// Declare Variables for zoom, speed, mix volume, and channel volumes
+// Declare Variables for zoom, speed, mix volume, and channel volumes, and audio
 
 float v_zoom;
 float v_speed;
 float v_volume;
 float v_lA;
 float v_rA;
+
+boolean audcon;
 
 //-------------------------------------
 
@@ -70,15 +72,12 @@ void updateShaderParams() { //update shader Parameters
  //pass variables to star field shader
  starshader.set("zoom", v_zoom);
  starshader.set("speed",v_speed);
+ if(keyPressed == true){
  starshader.set("iterations",(int)v_volume);
  starshader.set("l_v",v_lA);
  starshader.set("r_v",v_rA);
-
-
+ }
 }
-
-
-
 //-------------------------------------
 
 void draw() {
